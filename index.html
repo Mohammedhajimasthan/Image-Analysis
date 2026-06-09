@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gemini Image Analyzer</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>✨ Gemini Image Analyzer</h1>
+    <p class="subtitle">Upload an image and chat with AI</p>
+
+    <!-- AI CHAT BOX -->
+    <div class="chat-box" id="chatBox">
+        <div class="ai-message">
+            <span class="ai-label">AI</span>
+            <p id="aiText"></p>
+        </div>
+    </div>
+
+    <!-- FORM -->
+    <form id="imageForm">
+        <input type="file" id="imageInput" accept="image/*" required>
+        <textarea id="prompt" placeholder="Ask something about this image..." required></textarea>
+        <button type="submit">Analyze ✨</button>
+    </form>
+
+    <!-- LOADER -->
+    <div class="loader" id="loader"></div>
+
+    <!-- IMAGE PREVIEW -->
+    <div class="result" id="result">
+        <img id="outputImage">
+    </div>
+
+</div>
+
+<script>
+const form = document.getElementById("imageForm");
+const loader = document.getElementById("loader");
+const chatBox = document.getElementById("chatBox");
+const aiText = document.getElementById("aiText");
+const result = document.getElementById("result");
+const outputImage = document.getElementById("outputImage");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    loader.style.display = "block";
+    chatBox.style.display = "none";
+    result.style.display = "none";
+
+    const file = document.getElementById("imageInput").files[0];
+    const prompt = document.getElementById("prompt").value;
+
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("prompt", prompt);
+
+    try {
+        const response = await fetch("/analyze", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        loader.style.display = "none";
+
+        aiText.innerText = data.description || "No AI response.";
+        chatBox.style.display = "block";
+
+        if (data.image) {
+            outputImage.src = "data:image/png;base64," + data.image;
+            result.style.display = "block";
+        }
+
+    } catch (err) {
+        loader.style.display = "none";
+        aiText.innerText = "Server error occurred.";
+        chatBox.style.display = "block";
+    }
+});
+</script>
+
+</body>
+</html>
